@@ -138,6 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
             state.dayType = 'workdays';
         }
         
+        console.log(`Data: ${now.toLocaleDateString()}, Dzień tyg: ${dayOfWeek}, Święto?: ${state.dayType}`);
+        
         updateDayButtons();
     }
 

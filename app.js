@@ -75,17 +75,64 @@ document.addEventListener('DOMContentLoaded', () => {
         return dirData.stops.some(s => s.name === stopName);
     }
 
+    function getEaster(year) {
+        const a = year % 19;
+        const b = Math.floor(year / 100);
+        const c = year % 100;
+        const d = Math.floor(b / 4);
+        const e = b % 4;
+        const f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3);
+        const h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4);
+        const k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const month = Math.floor((h + l - 7 * m + 114) / 31);
+        const day = ((h + l - 7 * m + 114) % 31) + 1;
+        return new Date(year, month - 1, day);
+    }
+
     function detectDay() {
         const now = new Date();
-        const day = now.getDay(); // 0 = Sun, 6 = Sat
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-11
+        const date = now.getDate();
+        const dayOfWeek = now.getDay(); // 0 = Sun, 6 = Sat
         
-        // Simple holiday check (fixed dates)
-        const dateStr = `${now.getDate()}.${now.getMonth() + 1}`;
-        const holidays = ['1.1', '6.1', '1.5', '3.5', '15.8', '1.11', '11.11', '25.12', '26.12'];
+        // Format: "D.M" (No leading zeros for simplicity matching my list)
+        const dateStr = `${date}.${month + 1}`;
         
-        if (day === 0 || holidays.includes(dateStr)) {
+        // Fixed holidays in Poland
+        const fixedHolidays = [
+            '1.1',   // Nowy Rok
+            '6.1',   // Trzech Króli
+            '1.5',   // Święto Pracy
+            '3.5',   // Święto Konstytucji 3 Maja
+            '15.8',  // Wniebowzięcie NMP
+            '1.11',  // Wszystkich Świętych
+            '11.11', // Święto Niepodległości
+            '25.12', // Boże Narodzenie (1. dzień)
+            '26.12'  // Boże Narodzenie (2. dzień)
+        ];
+
+        // Movable holidays
+        const easter = getEaster(year);
+        
+        // Easter Monday (Poniedziałek Wielkanocny) = Easter + 1 day
+        const easterMonday = new Date(easter);
+        easterMonday.setDate(easter.getDate() + 1);
+        
+        // Corpus Christi (Boże Ciało) = Easter + 60 days
+        const corpusChristi = new Date(easter);
+        corpusChristi.setDate(easter.getDate() + 60);
+
+        const isEasterMonday = (easterMonday.getDate() === date && easterMonday.getMonth() === month);
+        const isCorpusChristi = (corpusChristi.getDate() === date && corpusChristi.getMonth() === month);
+
+        if (dayOfWeek === 0 || fixedHolidays.includes(dateStr) || isEasterMonday || isCorpusChristi) {
             state.dayType = 'sundays';
-        } else if (day === 6) {
+        } else if (dayOfWeek === 6) {
             state.dayType = 'saturdays';
         } else {
             state.dayType = 'workdays';
@@ -258,6 +305,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners ---
     
+    // Auto-update day on visibility change (e.g. unlock phone)
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            detectDay();
+            updateUI();
+        }
+    });
+
     dirBtn.addEventListener('click', switchDirection);
 
     dayBtns.forEach(btn => {

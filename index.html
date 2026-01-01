@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rozkład Jazdy - Linia 1</title>
-    <link rel="stylesheet" href="style.css?v=1.2">
-    <meta name="theme-color" content="#2E7D32">
+    <link rel="stylesheet" href="style.css?v=2.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#121212">
     <link rel="manifest" href="manifest.json">
     <!-- IOS support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,27 +14,35 @@
 </head>
 <body>
     <header class="sticky-header">
-        <div class="header-top">
-            <h1>Linia 1</h1>
-            <button id="refresh-btn" class="icon-btn" aria-label="Odśwież">
-                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-            </button>
-        </div>
-        
-        <div class="direction-control">
-            <button id="dir-btn" class="direction-btn">
-                <span id="dir-text">Czarna ⮕ NDM</span>
-                <svg class="swap-icon" viewBox="0 0 24 24" width="24" height="24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
-            </button>
-        </div>
+        <div class="header-content">
+            <div class="header-top">
+                <div class="brand">
+                    <h1>Linia 1</h1>
+                    <div id="live-clock" class="live-clock">--:--</div>
+                </div>
+                <button id="refresh-btn" class="icon-btn" aria-label="Odśwież">
+                    <svg viewBox="0 0 24 24" width="24" height="24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                </button>
+            </div>
+            
+            <div class="controls-wrapper">
+                <div class="direction-control">
+                    <button id="dir-btn" class="direction-btn">
+                        <span class="dir-icon-wrapper">
+                            <svg class="swap-icon" viewBox="0 0 24 24" width="20" height="20"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+                        </span>
+                        <span id="dir-text">Czarna ⮕ NDM</span>
+                    </button>
+                </div>
 
-        <div class="day-selector">
-            <button class="day-btn active" data-day="workdays">Roboczy</button>
-            <button class="day-btn" data-day="saturdays">Sobota</button>
-            <button class="day-btn" data-day="sundays">Ndz/Św</button>
-            <button id="btn-tomorrow" class="day-btn special-btn">Jutro</button>
+                <div class="day-selector">
+                    <button class="day-btn active" data-day="workdays">Roboczy</button>
+                    <button class="day-btn" data-day="saturdays">Sobota</button>
+                    <button class="day-btn" data-day="sundays">Ndz/Św</button>
+                    <button id="btn-tomorrow" class="day-btn special-btn">Jutro</button>
+                </div>
+            </div>
         </div>
-        <div id="live-clock" class="live-clock">--:--</div>
     </header>
 
     <main class="container">

@@ -129,16 +129,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isEasterMonday = (easterMonday.getDate() === date && easterMonday.getMonth() === month);
         const isCorpusChristi = (corpusChristi.getDate() === date && corpusChristi.getMonth() === month);
+        const isFixedHoliday = fixedHolidays.includes(dateStr);
 
-        if (dayOfWeek === 0 || fixedHolidays.includes(dateStr) || isEasterMonday || isCorpusChristi) {
-            state.dayType = 'sundays';
+        let type = 'workdays';
+        let reason = 'Roboczy';
+
+        if (dayOfWeek === 0) {
+            type = 'sundays';
+            reason = 'Niedziela';
+        } else if (isFixedHoliday) {
+            type = 'sundays';
+            reason = `Święto (${dateStr})`;
+        } else if (isEasterMonday) {
+            type = 'sundays';
+            reason = 'Pon. Wielk.';
+        } else if (isCorpusChristi) {
+            type = 'sundays';
+            reason = 'Boże Ciało';
         } else if (dayOfWeek === 6) {
-            state.dayType = 'saturdays';
-        } else {
-            state.dayType = 'workdays';
+            type = 'saturdays';
+            reason = 'Sobota';
         }
+
+        state.dayType = type;
         
-        console.log(`Data: ${now.toLocaleDateString()}, Dzień tyg: ${dayOfWeek}, Święto?: ${state.dayType}`);
+        console.log(`Data: ${now.toLocaleDateString()}, Typ: ${type}, Powód: ${reason}`);
+        
+        // Debug for user
+        const footer = document.querySelector('footer');
+        if (footer) {
+            let debugDiv = document.getElementById('debug-info');
+            if (!debugDiv) {
+                debugDiv = document.createElement('p');
+                debugDiv.id = 'debug-info';
+                debugDiv.style.fontSize = '12px';
+                debugDiv.style.color = '#ccc';
+                debugDiv.style.marginTop = '10px';
+                footer.appendChild(debugDiv);
+            }
+            debugDiv.textContent = `Info: ${now.toLocaleDateString()} (${reason})`;
+        }
         
         updateDayButtons();
     }

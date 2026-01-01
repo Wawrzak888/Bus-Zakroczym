@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rozkład Jazdy - Linia 1</title>
+    <link rel="stylesheet" href="css/style.css">
+    <meta name="theme-color" content="#2E7D32">
+    <link rel="manifest" href="manifest.json">
+    <!-- IOS support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <header class="sticky-header">
+        <div class="header-top">
+            <h1>Linia 1</h1>
+            <button id="refresh-btn" class="icon-btn" aria-label="Odśwież">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+            </button>
+        </div>
+        
+        <div class="direction-control">
+            <button id="dir-btn" class="direction-btn">
+                <span id="dir-text">Czarna ⮕ NDM</span>
+                <svg class="swap-icon" viewBox="0 0 24 24" width="24" height="24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+            </button>
+        </div>
+
+        <div class="day-selector">
+            <button class="day-btn active" data-day="workdays">Roboczy</button>
+            <button class="day-btn" data-day="saturdays">Sobota</button>
+            <button class="day-btn" data-day="sundays">Ndz/Św</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="stop-selection">
+            <label for="stop-select">Wybierz przystanek:</label>
+            <select id="stop-select">
+                <!-- Options populated by JS -->
+            </select>
+        </section>
+
+        <section class="quick-actions">
+            <button id="btn-work" class="action-btn">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h18c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+                Z domu do pracy
+            </button>
+            <button id="btn-home" class="action-btn">
+                <svg viewBox="0 0 24 24" width="24" height="24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Z pracy do domu
+            </button>
+        </section>
+
+        <section id="departure-info" class="card hidden">
+            <div class="card-header">
+                <h2>Najbliższy odjazd</h2>
+                <span id="time-remaining" class="badge">-- min</span>
+            </div>
+            <div class="big-time" id="next-departure-time">--:--</div>
+            <div class="next-departures">
+                <p>Kolejne: <span id="later-departures">--:--, --:--</span></p>
+            </div>
+        </section>
+        
+        <section id="full-schedule" class="card">
+            <div class="card-header toggle-header">
+                <h3>Pełny rozkład (dziś)</h3>
+                <span class="toggle-icon">▼</span>
+            </div>
+            <div class="schedule-grid hidden" id="schedule-list">
+                <!-- Times populated by JS -->
+            </div>
+        </section>
+
+        <section class="settings-card">
+            <h3>Ustawienia ulubionych</h3>
+            <div class="setting-row">
+                <span>Dom:</span>
+                <span id="home-stop-name" class="stop-label">Nie ustawiono</span>
+                <button id="set-home-btn" class="sm-btn">Ustaw obecny</button>
+            </div>
+            <div class="setting-row">
+                <span>Praca:</span>
+                <span id="work-stop-name" class="stop-label">Nie ustawiono</span>
+                <button id="set-work-btn" class="sm-btn">Ustaw obecny</button>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Rozkład jazdy Gminy Czosnów / Zakroczym / NDM</p>
+        <p>Aplikacja offline v1.0</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

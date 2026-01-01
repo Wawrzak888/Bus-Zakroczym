@@ -40,6 +40,16 @@ body {
     padding: 10px;
 }
 
+.live-clock {
+    text-align: center;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    background-color: rgba(0,0,0,0.2);
+    padding: 4px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
 .header-top {
     display: flex;
     justify-content: space-between;

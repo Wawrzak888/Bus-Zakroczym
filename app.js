@@ -26,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const workLabel = document.getElementById('work-stop-name');
     const setHomeBtn = document.getElementById('set-home-btn');
     const setWorkBtn = document.getElementById('set-work-btn');
+    const liveClock = document.getElementById('live-clock');
 
     // --- Initialization ---
     function init() {
@@ -63,6 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Timer for real-time updates
         setInterval(updateTimeDisplay, 30000); // Every 30s
+        setInterval(updateClock, 1000); // Every 1s
+        updateClock(); // Initial call
     }
 
     // --- Helpers ---
@@ -93,6 +96,18 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Date(year, month - 1, day);
     }
 
+    const FIXED_HOLIDAYS_MAP = {
+        '1.1': 'Nowy Rok',
+        '6.1': 'Trzech Króli',
+        '1.5': 'Święto Pracy',
+        '3.5': 'Święto Konstytucji 3 Maja',
+        '15.8': 'Wniebowzięcie NMP',
+        '1.11': 'Wszystkich Świętych',
+        '11.11': 'Święto Niepodległości',
+        '25.12': 'Boże Narodzenie (1. dzień)',
+        '26.12': 'Boże Narodzenie (2. dzień)'
+    };
+
     function detectDay() {
         const now = new Date();
         const year = now.getFullYear();
@@ -100,22 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const date = now.getDate();
         const dayOfWeek = now.getDay(); // 0 = Sun, 6 = Sat
         
-        // Format: "D.M" (No leading zeros for simplicity matching my list)
+        // Format: "D.M"
         const dateStr = `${date}.${month + 1}`;
         
-        // Fixed holidays in Poland
-        const fixedHolidays = [
-            '1.1',   // Nowy Rok
-            '6.1',   // Trzech Króli
-            '1.5',   // Święto Pracy
-            '3.5',   // Święto Konstytucji 3 Maja
-            '15.8',  // Wniebowzięcie NMP
-            '1.11',  // Wszystkich Świętych
-            '11.11', // Święto Niepodległości
-            '25.12', // Boże Narodzenie (1. dzień)
-            '26.12'  // Boże Narodzenie (2. dzień)
-        ];
-
         // Movable holidays
         const easter = getEaster(year);
         
@@ -129,48 +131,66 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isEasterMonday = (easterMonday.getDate() === date && easterMonday.getMonth() === month);
         const isCorpusChristi = (corpusChristi.getDate() === date && corpusChristi.getMonth() === month);
-        const isFixedHoliday = fixedHolidays.includes(dateStr);
+        const fixedHolidayName = FIXED_HOLIDAYS_MAP[dateStr];
 
         let type = 'workdays';
-        let reason = 'Roboczy';
-
+        // We won't log here anymore, but updateClock will use similar logic if needed,
+        // or we store the holiday name in state if we want to show it.
+        
         if (dayOfWeek === 0) {
             type = 'sundays';
-            reason = 'Niedziela';
-        } else if (isFixedHoliday) {
+        } else if (fixedHolidayName) {
             type = 'sundays';
-            reason = `Święto (${dateStr})`;
         } else if (isEasterMonday) {
             type = 'sundays';
-            reason = 'Pon. Wielk.';
         } else if (isCorpusChristi) {
             type = 'sundays';
-            reason = 'Boże Ciało';
         } else if (dayOfWeek === 6) {
             type = 'saturdays';
-            reason = 'Sobota';
         }
 
         state.dayType = type;
-        
-        console.log(`Data: ${now.toLocaleDateString()}, Typ: ${type}, Powód: ${reason}`);
-        
-        // Debug for user
-        const footer = document.querySelector('footer');
-        if (footer) {
-            let debugDiv = document.getElementById('debug-info');
-            if (!debugDiv) {
-                debugDiv = document.createElement('p');
-                debugDiv.id = 'debug-info';
-                debugDiv.style.fontSize = '12px';
-                debugDiv.style.color = '#ccc';
-                debugDiv.style.marginTop = '10px';
-                footer.appendChild(debugDiv);
-            }
-            debugDiv.textContent = `Info: ${now.toLocaleDateString()} (${reason})`;
-        }
-        
         updateDayButtons();
+    }
+
+    function getDayInfo(now) {
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const date = now.getDate();
+        const dayOfWeek = now.getDay();
+        const dateStr = `${date}.${month + 1}`;
+
+        const days = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+        const dayName = days[dayOfWeek];
+
+        // Check holidays for name
+        if (FIXED_HOLIDAYS_MAP[dateStr]) return FIXED_HOLIDAYS_MAP[dateStr];
+        
+        const easter = getEaster(year);
+        const easterMonday = new Date(easter);
+        easterMonday.setDate(easter.getDate() + 1);
+        const corpusChristi = new Date(easter);
+        corpusChristi.setDate(easter.getDate() + 60);
+
+        if (easterMonday.getDate() === date && easterMonday.getMonth() === month) return 'Pon. Wielkanocny';
+        if (corpusChristi.getDate() === date && corpusChristi.getMonth() === month) return 'Boże Ciało';
+        if (easter.getDate() === date && easter.getMonth() === month) return 'Wielkanoc'; // Easter itself is Sunday
+
+        return dayName;
+    }
+
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        
+        const dayInfo = getDayInfo(now);
+        const dateStr = now.toLocaleDateString('pl-PL', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+        if (liveClock) {
+            liveClock.textContent = `${h}:${m}:${s} | ${dayInfo}, ${dateStr}`;
+        }
     }
 
     // --- Rendering ---
@@ -406,7 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnWork.addEventListener('click', () => {
-         // "Do Pracy" (Z domu do pracy) -> Start: Home.
+        // "Do Pracy" (Z domu do pracy) -> Start: Home.
         const homeStop = Storage.getHome();
         if (homeStop) {
             changeStop(homeStop);

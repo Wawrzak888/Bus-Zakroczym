@@ -111,17 +111,36 @@ body {
     background: transparent;
     border: 1px solid rgba(255,255,255,0.4);
     color: rgba(255,255,255,0.8);
-    padding: 6px 4px;
+    padding: 6px 2px;
     border-radius: 4px;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
+    white-space: nowrap;
+}
+
+.day-btn.special-btn {
+    background-color: rgba(255, 193, 7, 0.2); /* Amber tint */
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.day-btn.special-btn:active {
+    background-color: var(--accent-color);
+    color: black;
 }
 
 .day-btn.active {
-    background-color: white;
-    color: var(--primary-color);
-    font-weight: bold;
-    border-color: white;
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: black;
+    font-weight: 600;
+}
+
+.day-btn.special-btn.active {
+    background-color: #ffc107; /* Brighter amber when active */
+    color: black;
+    border-color: #ffc107;
 }
 
 /* Main Content */

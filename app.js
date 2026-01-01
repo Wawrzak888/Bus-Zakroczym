@@ -3,13 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = {
         directionId: null, // 'czarna_ndm' or 'ndm_czarna'
         dayType: 'workdays', // 'workdays', 'saturdays', 'sundays'
-        currentStop: null
+        currentStop: null,
+        manualOverride: false,
+        viewingTomorrow: false
     };
 
     // --- DOM Elements ---
     const dirBtn = document.getElementById('dir-btn');
     const dirText = document.getElementById('dir-text');
-    const dayBtns = document.querySelectorAll('.day-btn');
+    const dayBtns = document.querySelectorAll('.day-btn:not(#btn-tomorrow)');
+    const btnTomorrow = document.getElementById('btn-tomorrow');
     const stopSelect = document.getElementById('stop-select');
     const btnHome = document.getElementById('btn-home');
     const btnWork = document.getElementById('btn-work');
@@ -213,14 +216,72 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function checkTomorrow() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        
+        // Use logic similar to detectDay but for tomorrow
+        const year = tomorrow.getFullYear();
+        const month = tomorrow.getMonth();
+        const date = tomorrow.getDate();
+        const dayOfWeek = tomorrow.getDay();
+        const dateStr = `${date}.${month + 1}`;
+        
+        const easter = getEaster(year);
+        const easterMonday = new Date(easter);
+        easterMonday.setDate(easter.getDate() + 1);
+        const corpusChristi = new Date(easter);
+        corpusChristi.setDate(easter.getDate() + 60);
+
+        const isEasterMonday = (easterMonday.getDate() === date && easterMonday.getMonth() === month);
+        const isCorpusChristi = (corpusChristi.getDate() === date && corpusChristi.getMonth() === month);
+        const fixedHolidayName = FIXED_HOLIDAYS_MAP[dateStr];
+
+        let type = 'workdays';
+        if (dayOfWeek === 0 || fixedHolidayName || isEasterMonday || isCorpusChristi) {
+            type = 'sundays';
+        } else if (dayOfWeek === 6) {
+            type = 'saturdays';
+        }
+
+        state.dayType = type;
+        state.manualOverride = true;
+        state.viewingTomorrow = true;
+        
+        updateDayButtons();
+        updateUI();
+        
+        // Auto-expand schedule
+        if (scheduleList.classList.contains('hidden')) {
+            scheduleList.classList.remove('hidden');
+            const icon = scheduleHeader.querySelector('.toggle-icon');
+            if (icon) icon.textContent = '▲';
+        }
+    }
+
     function updateDayButtons() {
         dayBtns.forEach(btn => {
-            if (btn.dataset.day === state.dayType) {
-                btn.classList.add('active');
-            } else {
+            if (state.viewingTomorrow) {
                 btn.classList.remove('active');
+            } else {
+                if (btn.dataset.day === state.dayType) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             }
         });
+        
+        if (btnTomorrow) {
+            if (state.viewingTomorrow) {
+                btnTomorrow.classList.add('active');
+                // Optional: Change text to indicate type? e.g. "Jutro (Roboczy)"
+                // But simple active state is cleaner
+            } else {
+                btnTomorrow.classList.remove('active');
+            }
+        }
     }
 
     function updateUI() {
@@ -248,7 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        // If viewing tomorrow, treat current time as -1 (all future)
+        const currentMinutes = state.viewingTomorrow ? -1 : (now.getHours() * 60 + now.getMinutes());
 
         times.forEach(time => {
             const div = document.createElement('div');
@@ -290,7 +352,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const now = new Date();
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentMinutes = state.viewingTomorrow ? -1 : (now.getHours() * 60 + now.getMinutes());
         
         // Find next departures
         const upcoming = times.filter(t => {
@@ -300,29 +362,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (upcoming.length > 0) {
             const next = upcoming[0];
-            const [h, m] = next.split(':').map(Number);
-            const nextMinutes = h * 60 + m;
-            const diff = nextMinutes - currentMinutes;
             
-            let diffText = "";
-            if (diff === 0) diffText = "Teraz";
-            else if (diff < 60) diffText = `${diff} min`;
-            else {
-                const dh = Math.floor(diff / 60);
-                const dm = diff % 60;
-                diffText = `${dh}h ${dm}m`;
-            }
+            if (state.viewingTomorrow) {
+                 nextDepartureTime.textContent = next;
+                 timeRemaining.textContent = "Jutro";
+                 const nextFew = upcoming.slice(1, 3).join(', ');
+                 laterDepartures.textContent = nextFew || "";
+            } else {
+                const [h, m] = next.split(':').map(Number);
+                const nextMinutes = h * 60 + m;
+                const diff = nextMinutes - currentMinutes;
+                
+                let diffText = "";
+                if (diff === 0) diffText = "Teraz";
+                else if (diff < 60) diffText = `${diff} min`;
+                else {
+                    const dh = Math.floor(diff / 60);
+                    const dm = diff % 60;
+                    diffText = `${dh}h ${dm}m`;
+                }
 
-            nextDepartureTime.textContent = next;
-            timeRemaining.textContent = diffText;
-            
-            const nextFew = upcoming.slice(1, 3).join(', ');
-            laterDepartures.textContent = nextFew || "Koniec kursów";
+                nextDepartureTime.textContent = next;
+                timeRemaining.textContent = diffText;
+                
+                const nextFew = upcoming.slice(1, 3).join(', ');
+                laterDepartures.textContent = nextFew || "Koniec kursów";
+            }
         } else {
-            // No more today, show first of tomorrow (or just --)
-            nextDepartureTime.textContent = "--:--";
-            timeRemaining.textContent = "Koniec na dziś";
-            laterDepartures.textContent = `Pierwszy jutro: ${times[0]}`;
+            // No more today
+            if (state.viewingTomorrow) {
+                // Should not happen if list is not empty and minutes is -1
+                nextDepartureTime.textContent = "--:--";
+                timeRemaining.textContent = "Brak kursów";
+            } else {
+                nextDepartureTime.textContent = "--:--";
+                timeRemaining.textContent = "Koniec na dziś";
+                laterDepartures.textContent = `Pierwszy jutro: ${times[0]}`;
+            }
         }
         
         departureInfo.classList.remove('hidden');
@@ -359,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Auto-update day on visibility change (e.g. unlock phone)
     document.addEventListener("visibilitychange", () => {
-        if (!document.hidden) {
+        if (!document.hidden && !state.manualOverride) {
             detectDay();
             updateUI();
         }
@@ -370,10 +446,18 @@ document.addEventListener('DOMContentLoaded', () => {
     dayBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             state.dayType = btn.dataset.day;
+            state.manualOverride = true;
+            state.viewingTomorrow = false;
             updateDayButtons();
             updateUI();
         });
     });
+
+    if (btnTomorrow) {
+        btnTomorrow.addEventListener('click', () => {
+            checkTomorrow();
+        });
+    }
 
     stopSelect.addEventListener('change', (e) => {
         state.currentStop = e.target.value;

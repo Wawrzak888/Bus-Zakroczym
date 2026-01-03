@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bus-app-v3';
+const CACHE_NAME = 'bus-app-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,13 +7,13 @@ const ASSETS_TO_CACHE = [
   './data.js',
   './storage.js',
   './manifest.json',
-  './assets/icons/icon-192.svg',
-  './assets/icons/icon-512.svg'
+  './icon-192.svg',
+  './icon-512.svg'
 ];
 
 // Install Event
 self.addEventListener('install', (event) => {
-  self.skipWaiting(); // Force activation
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       console.log('[Service Worker] Caching all assets');
@@ -36,7 +36,7 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  return self.clients.claim(); // Take control immediately
+  return self.clients.claim();
 });
 
 // Fetch Event

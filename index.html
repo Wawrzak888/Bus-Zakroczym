@@ -11,8 +11,34 @@
     <!-- IOS support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script>
+        // PWA Logic - Must be early
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('SW registered!', reg))
+                    .catch(err => console.log('SW failed', err));
+            });
+        }
+
+        let deferredPrompt;
+        // Logic to show banner will be handled after DOM load or here if elements exist
+    </script>
 </head>
 <body>
+    <div id="install-banner" class="install-banner" style="display: none;">
+        <div class="install-content">
+            <span class="install-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="#121212"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+            </span>
+            <div class="install-text">
+                <strong>Zainstaluj aplikację</strong>
+                <span>Szybki dostęp offline</span>
+            </div>
+        </div>
+        <button id="install-btn" class="install-btn">Zainstaluj</button>
+    </div>
+    
     <header class="sticky-header">
         <div class="header-content">
             <div class="header-top">
@@ -119,35 +145,35 @@
     </footer>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('SW registered!', reg))
-                    .catch(err => console.log('SW failed', err));
+        // Move listener to ensure elements are found
+        document.addEventListener('DOMContentLoaded', () => {
+            const installBanner = document.getElementById('install-banner');
+            const installBtn = document.getElementById('install-btn');
+            
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                installBanner.style.display = 'flex';
+                console.log('beforeinstallprompt fired');
             });
-        }
 
-        let deferredPrompt;
-        const installBanner = document.getElementById('install-banner');
-        const installBtn = document.getElementById('install-btn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBanner.style.display = 'flex';
-        });
-
-        installBtn.addEventListener('click', () => {
-            installBanner.style.display = 'none';
-            deferredPrompt.prompt();
-            deferredPrompt.userChoice.then((choiceResult) => {
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('User accepted the install prompt');
-                }
-                deferredPrompt = null;
-            });
+            if (installBtn) {
+                installBtn.addEventListener('click', () => {
+                    installBanner.style.display = 'none';
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('User accepted the install prompt');
+                            }
+                            deferredPrompt = null;
+                        });
+                    }
+                });
+            }
         });
     </script>
+
 
 
     <script src="data.js"></script>
